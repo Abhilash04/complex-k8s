@@ -30,8 +30,7 @@ build:
     - echo $GCLOUD_SERVICE_KEY | docker login --username _json_key --password-stdin https://asia.gcr.io 
     - export DOCKER_AUTH_CONFIG=$(cat /root/.docker/config.json)
   script:
-    - docker build -t $BRANCH_IMAGE_TAG -t $COMMIT_IMAGE_TAG -f ./client/Dockerfile.dev .
-    - docker push $BRANCH_IMAGE_TAG
+    - docker build -t $COMMIT_IMAGE_TAG -f ./client/Dockerfile.dev ./client
     - docker push $COMMIT_IMAGE_TAG
   only:
     refs:
