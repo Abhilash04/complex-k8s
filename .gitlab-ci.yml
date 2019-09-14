@@ -92,6 +92,7 @@ deploy:
 
   script:
     - chmod +x ./deploy.sh
+    - bash ./deploy.sh
   environment:
     name: production
     url: http://34.93.154.22:80
