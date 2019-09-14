@@ -1,3 +1,5 @@
+#!/bin/sh
+
 docker build -t $COMMIT_IMAGE_TAG_CLIENT - t $LATEST_IMAGE_TAG_CLIENT -f ./client/Dockerfile ./client
 docker build -t $COMMIT_IMAGE_TAG_SERVER -t $LATEST_IMAGE_TAG_SERVER -f ./server/Dockerfile ./server
 docker build -t $COMMIT_IMAGE_TAG_WORKER -t $LATEST_IMAGE_TAG_WORKER -f ./worker/Dockerfile ./worker
