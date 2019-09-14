@@ -73,8 +73,8 @@ deploy:
     COMMIT_IMAGE_TAG_WORKER: $IMAGE_REGISTRY/worker:$CI_COMMIT_SHA 
     LATEST_IMAGE_TAG_WORKER: $IMAGE_REGISTRY/worker:latest
   before_script:
-    - apk update && apk add openssh 
-    - apk add bash
+    - apt-get update
+    - apt install bash
     - echo $GCLOUD_SERVICE_KEY > /tmp/$CI_PIPELINE_ID.json
     - gcloud auth activate-service-account --key-file /tmp/$CI_PIPELINE_ID.json
     - gcloud config set project $GCLOUD_PROJECT_ID
