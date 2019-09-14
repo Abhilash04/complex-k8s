@@ -54,7 +54,7 @@ variables:
 #       - qa
 
 deploy: 
-  image: google/cloud-sdk:latest
+  image: docker:stable
   services:
     - docker:stable-dind
   stage: deploy
@@ -66,7 +66,12 @@ deploy:
     COMMIT_IMAGE_TAG_WORKER: $IMAGE_REGISTRY/worker:$CI_COMMIT_SHA 
     BRANCH_IMAGE_TAG_WORKER: $IMAGE_REGISTRY/worker:$CI_COMMIT_REF_SLUG
   before_script:
+    - echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
+    - apt-get install apt-transport-https ca-certificates
+    - curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key --keyring /usr/share/keyrings/cloud.google.gpg add -
+    - sudo apt-get update && sudo apt-get install google-cloud-sdk    
     - echo $GCLOUD_SERVICE_KEY > /tmp/$CI_PIPELINE_ID.json
+    - sudo apt-get install kubectl
     - gcloud auth activate-service-account --key-file /tmp/$CI_PIPELINE_ID.json
     - gcloud config set project $GCLOUD_PROJECT_ID
     - gcloud config set compute/zone asia-south1-c
