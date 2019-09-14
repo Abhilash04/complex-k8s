@@ -11,27 +11,35 @@ cache:
 variables:
   IMAGE_REGISTRY: "asia.gcr.io/k8s-gitlab-ci"
 
-# build:
-#   image: docker:stable
-#   services:
-#     - docker:stable-dind
-#   stage: build
-#   variables:
-#     COMMIT_IMAGE_TAG_CLIENT: $IMAGE_REGISTRY/client:$CI_COMMIT_SHA
-#     BRANCH_IMAGE_TAG_CLIENT: $IMAGE_REGISTRY/client:$CI_COMMIT_REF_SLUG
-#   before_script:
-#     - echo $GCLOUD_SERVICE_KEY | docker login --username _json_key --password-stdin https://asia.gcr.io 
-#     - export DOCKER_AUTH_CONFIG=$(cat /root/.docker/config.json)
-#   script:
-#     - docker build -t $COMMIT_IMAGE_TAG_CLIENT -t $BRANCH_IMAGE_TAG_CLIENT -f ./client/Dockerfile.dev ./client
-#     - docker push $COMMIT_IMAGE_TAG_CLIENT
-#     - docker push $BRANCH_IMAGE_TAG_CLIENT
-#   only:
-#     refs:
-#       - development
-#       - tags
-#       - master
-#       - qa
+build:
+  image: docker:stable
+  services:
+    - docker:stable-dind
+  stage: build
+  variables:
+    DOCKER_DRIVER: overlay
+    COMMIT_IMAGE_TAG_CLIENT: $IMAGE_REGISTRY/client:$CI_COMMIT_SHA
+    LATEST_IMAGE_TAG_CLIENT: $IMAGE_REGISTRY/client:latest
+    COMMIT_IMAGE_TAG_SERVER: $IMAGE_REGISTRY/server:$CI_COMMIT_SHA
+    LATEST_IMAGE_TAG_SERVER: $IMAGE_REGISTRY/server:latest
+    COMMIT_IMAGE_TAG_WORKER: $IMAGE_REGISTRY/worker:$CI_COMMIT_SHA 
+    LATEST_IMAGE_TAG_WORKER: $IMAGE_REGISTRY/worker:latest
+  before_script:
+    - echo $GCLOUD_SERVICE_KEY | docker login --username _json_key --password-stdin https://asia.gcr.io 
+    - export DOCKER_AUTH_CONFIG=$(cat /root/.docker/config.json)
+  script:
+    - docker build -t $COMMIT_IMAGE_TAG_CLIENT - t $LATEST_IMAGE_TAG_CLIENT -f ./client/Dockerfile ./client
+    - docker build -t $COMMIT_IMAGE_TAG_SERVER -t $LATEST_IMAGE_TAG_SERVER -f ./server/Dockerfile ./server
+    - docker build -t $COMMIT_IMAGE_TAG_WORKER -t $LATEST_IMAGE_TAG_WORKER -f ./worker/Dockerfile ./worker
+    - docker push $COMMIT_IMAGE_TAG_CLIENT
+    - docker push $LATEST_IMAGE_TAG_CLIENT
+    - docker push $COMMIT_IMAGE_TAG_SERVER
+    - docker push $LATEST_IMAGE_TAG_SERVER
+    - docker push $COMMIT_IMAGE_TAG_WORKER
+    - docker push $LATEST_IMAGE_TAG_WORKER
+  only:
+    refs:
+      - master
 
 # test:
 #   image: docker:stable
@@ -54,43 +62,17 @@ variables:
 #       - qa
 
 deploy: 
-  image: docker:stable
-  services:
-    - docker:stable-dind
+  image: google/cloud-sdk:latest
   stage: deploy
-  variables:
-    DOCKER_DRIVER: overlay
-    COMMIT_IMAGE_TAG_CLIENT: $IMAGE_REGISTRY/client:$CI_COMMIT_SHA
-    LATEST_IMAGE_TAG_CLIENT: $IMAGE_REGISTRY/client:latest
-    COMMIT_IMAGE_TAG_SERVER: $IMAGE_REGISTRY/server:$CI_COMMIT_SHA
-    LATEST_IMAGE_TAG_SERVER: $IMAGE_REGISTRY/server:latest
-    COMMIT_IMAGE_TAG_WORKER: $IMAGE_REGISTRY/worker:$CI_COMMIT_SHA 
-    LATEST_IMAGE_TAG_WORKER: $IMAGE_REGISTRY/worker:latest
-  
   before_script:
     - apk update && apk add openssh 
     - apk add bash
-    - apk add --update make ca-certificates openssl python
-    - update-ca-certificates
-    - echo $GCLOUD_SERVICE_KEY > ${HOME}/gcloud-service-key.json
-    - wget https://dl.google.com/dl/cloudsdk/release/google-cloud-sdk.tar.gz
-    - tar zxvf google-cloud-sdk.tar.gz && ./google-cloud-sdk/install.sh --usage-reporting=false --path-update=true
-    - google-cloud-sdk/bin/gcloud --quiet components update
-    - google-cloud-sdk/bin/gcloud components install kubectl
-    - google-cloud-sdk/bin/gcloud auth activate-service-account --key-file ${HOME}/gcloud-service-key.json
-    - echo $GCLOUD_SERVICE_KEY | docker login --username _json_key --password-stdin https://asia.gcr.io
-    - export DOCKER_AUTH_CONFIG=$(cat /root/.docker/config.json)
-    
-  # before_script:
-  #   - echo $GCLOUD_SERVICE_KEY > /tmp/$CI_PIPELINE_ID.json
-  #   - gcloud auth activate-service-account --key-file /tmp/$CI_PIPELINE_ID.json
-  #   - gcloud config set project $GCLOUD_PROJECT_ID
-  #   - gcloud config set compute/zone asia-south1-c
-  #   - gcloud container clusters get-credentials complex-k8s-cluster
-  #   - gcloud auth configure-docker -q
-  #   - echo $GCLOUD_SERVICE_KEY | docker login --username _json_key --password-stdin https://asia.gcr.io 
-  #   - export DOCKER_AUTH_CONFIG=$(cat /root/.docker/config.json)
-
+    - echo $GCLOUD_SERVICE_KEY > /tmp/$CI_PIPELINE_ID.json
+    - gcloud auth activate-service-account --key-file /tmp/$CI_PIPELINE_ID.json
+    - gcloud config set project $GCLOUD_PROJECT_ID
+    - gcloud config set compute/zone asia-south1-c
+    - gcloud container clusters get-credentials complex-k8s-cluster
+    - gcloud components install kubectl
   script:
     - chmod +x ./deploy.sh
     - bash ./deploy.sh
