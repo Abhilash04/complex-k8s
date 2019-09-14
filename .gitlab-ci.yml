@@ -68,6 +68,7 @@ deploy:
     LATEST_IMAGE_TAG_WORKER: $IMAGE_REGISTRY/worker:latest
   
   before_script:
+    - apk update && apk add openssh
     - apk add --update make ca-certificates openssl python
     - update-ca-certificates
     - echo $GCLOUD_SERVICE_KEY > ${HOME}/gcloud-service-key.json
