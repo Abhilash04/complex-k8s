@@ -18,10 +18,10 @@ build:
   stage: build
   variables:
     DOCKER_DRIVER: overlay
-    COMMIT_IMAGE_TAG_CLIENT: $IMAGE_REGISTRY/client:$CI_COMMIT_SHA
-    LATEST_IMAGE_TAG_CLIENT: $IMAGE_REGISTRY/client:latest
-    COMMIT_IMAGE_TAG_SERVER: $IMAGE_REGISTRY/server:$CI_COMMIT_SHA
-    LATEST_IMAGE_TAG_SERVER: $IMAGE_REGISTRY/server:latest
+    COMMIT_IMAGE_TAG_CLIENT: $IMAGE_REGISTRY/web:$CI_COMMIT_SHA
+    LATEST_IMAGE_TAG_CLIENT: $IMAGE_REGISTRY/web:latest
+    COMMIT_IMAGE_TAG_SERVER: $IMAGE_REGISTRY/api:$CI_COMMIT_SHA
+    LATEST_IMAGE_TAG_SERVER: $IMAGE_REGISTRY/api:latest
     COMMIT_IMAGE_TAG_WORKER: $IMAGE_REGISTRY/worker:$CI_COMMIT_SHA 
     LATEST_IMAGE_TAG_WORKER: $IMAGE_REGISTRY/worker:latest
   before_script:
@@ -65,16 +65,13 @@ deploy:
   image: google/cloud-sdk:latest
   stage: deploy
   variables:
-    DOCKER_DRIVER: overlay
-    COMMIT_IMAGE_TAG_CLIENT: $IMAGE_REGISTRY/client:$CI_COMMIT_SHA
-    LATEST_IMAGE_TAG_CLIENT: $IMAGE_REGISTRY/client:latest
-    COMMIT_IMAGE_TAG_SERVER: $IMAGE_REGISTRY/server:$CI_COMMIT_SHA
-    LATEST_IMAGE_TAG_SERVER: $IMAGE_REGISTRY/server:latest
+    COMMIT_IMAGE_TAG_CLIENT: $IMAGE_REGISTRY/web:$CI_COMMIT_SHA
+    LATEST_IMAGE_TAG_CLIENT: $IMAGE_REGISTRY/web:latest
+    COMMIT_IMAGE_TAG_SERVER: $IMAGE_REGISTRY/api:$CI_COMMIT_SHA
+    LATEST_IMAGE_TAG_SERVER: $IMAGE_REGISTRY/api:latest
     COMMIT_IMAGE_TAG_WORKER: $IMAGE_REGISTRY/worker:$CI_COMMIT_SHA 
     LATEST_IMAGE_TAG_WORKER: $IMAGE_REGISTRY/worker:latest
   before_script:
-    - apt-get update
-    - apt install bash
     - echo $GCLOUD_SERVICE_KEY > /tmp/$CI_PIPELINE_ID.json
     - gcloud auth activate-service-account --key-file /tmp/$CI_PIPELINE_ID.json
     - gcloud config set project $GCLOUD_PROJECT_ID
