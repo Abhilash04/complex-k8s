@@ -1,6 +1,7 @@
 stages:
   - build
   - test
+  - deploy
 
 cache:
   key: ${CI_COMMIT_REF_SLUG}
@@ -16,22 +17,15 @@ build:
     - docker:stable-dind
   stage: build
   variables:
-    BRANCH_IMAGE_TAG: $IMAGE_REGISTRY/web:$CI_COMMIT_REF_SLUG
-    COMMIT_IMAGE_TAG: $IMAGE_REGISTRY/web:$CI_COMMIT_SHA
+    COMMIT_IMAGE_TAG_CLIENT: $IMAGE_REGISTRY/client:$CI_COMMIT_SHA
+    BRANCH_IMAGE_TAG_CLIENT: $IMAGE_REGISTRY/client:$CI_COMMIT_REF_SLUG
   before_script:
-    # - curl https://sdk.cloud.google.com | bash > /dev/null;
-    # - source $HOME/google-cloud-sdk/path.bash.inc
-    # - gcloud components update kubectl
-    # - echo $GCLOUD_SERVICE_KEY > /tmp/$CI_PIPELINE_ID.json
-    # - gcloud auth activate-service-account --key-file /tmp/$CI_PIPELINE_ID.json
-    # - gcloud config set project $GCLOUD_PROJECT_ID
-    # - gcloud config set compute/zone asia-south1-c
-    # - gcloud container clusters get-credentials complex-k8s-cluster
     - echo $GCLOUD_SERVICE_KEY | docker login --username _json_key --password-stdin https://asia.gcr.io 
     - export DOCKER_AUTH_CONFIG=$(cat /root/.docker/config.json)
   script:
-    - docker build -t $COMMIT_IMAGE_TAG -f ./client/Dockerfile.dev ./client
-    - docker push $COMMIT_IMAGE_TAG
+    - docker build -t $COMMIT_IMAGE_TAG_CLIENT -t $BRANCH_IMAGE_TAG_CLIENT -f ./client/Dockerfile.dev ./client
+    - docker push $COMMIT_IMAGE_TAG_CLIENT
+    - docker push $BRANCH_IMAGE_TAG_CLIENT
   only:
     refs:
       - development
@@ -45,16 +39,42 @@ test:
     - docker:stable-dind
   stage: test 
   variables:
-    BRANCH_IMAGE_TAG: $IMAGE_REGISTRY/web:$CI_COMMIT_REF_SLUG
-    COMMIT_IMAGE_TAG: $IMAGE_REGISTRY/web:$CI_COMMIT_SHA 
+    COMMIT_IMAGE_TAG_CLIENT: $IMAGE_REGISTRY/client:$CI_COMMIT_SHA
+    BRANCH_IMAGE_TAG_CLIENT: $IMAGE_REGISTRY/client:$CI_COMMIT_REF_SLUG
   before_script:
     - echo $GCLOUD_SERVICE_KEY | docker login --username _json_key --password-stdin https://asia.gcr.io 
     - export DOCKER_AUTH_CONFIG=$(cat /root/.docker/config.json)
   script:
-    - docker run -e CI=true $COMMIT_IMAGE_TAG npm run test
+    - docker run -e CI=true $COMMIT_IMAGE_TAG_CLIENT npm run test
   only:
     refs:
       - development
       - tags
       - master
       - qa
+
+deploy: 
+  image: google/cloud-sdk:latest
+  stage: deploy
+  variables:
+    COMMIT_IMAGE_TAG_CLIENT: $IMAGE_REGISTRY/client:$CI_COMMIT_SHA
+    BRANCH_IMAGE_TAG_CLIENT: $IMAGE_REGISTRY/client:$CI_COMMIT_REF_SLUG
+    COMMIT_IMAGE_TAG_SERVER: $IMAGE_REGISTRY/server:$CI_COMMIT_SHA
+    BRANCH_IMAGE_TAG_SERVER: $IMAGE_REGISTRY/server:$CI_COMMIT_REF_SLUG
+    COMMIT_IMAGE_TAG_WORKER: $IMAGE_REGISTRY/worker:$CI_COMMIT_SHA 
+    BRANCH_IMAGE_TAG_WORKER: $IMAGE_REGISTRY/worker:$CI_COMMIT_REF_SLUG
+  before_script:
+    - gcloud components update kubectl
+    - echo $GCLOUD_SERVICE_KEY > /tmp/$CI_PIPELINE_ID.json
+    - gcloud auth activate-service-account --key-file /tmp/$CI_PIPELINE_ID.json
+    - gcloud config set project $GCLOUD_PROJECT_ID
+    - gcloud config set compute/zone asia-south1-c
+    - gcloud container clusters get-credentials complex-k8s-cluster
+    - echo $GCLOUD_SERVICE_KEY | docker login --username _json_key --password-stdin https://asia.gcr.io 
+    - export DOCKER_AUTH_CONFIG=$(cat /root/.docker/config.json)
+    - rm /tmp/$CI_PIPELINE_ID.json
+  script:
+    - bash ./deploy.sh
+  only:
+    refs:
+      - master
