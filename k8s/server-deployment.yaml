@@ -14,7 +14,7 @@ spec:
     spec: 
       containers:
         - name: server
-          image: stephengrider/multi-server
+          image: asia.gcr.io/k8s-gitlab-ci/server
           ports:
             - containerPort: 5000
           env:

@@ -14,6 +14,6 @@ spec:
     spec:
       containers:
         - name: client
-          image: stephengrider/multi-client
+          image: asia.gcr.io/k8s-gitlab-ci/client
           ports:
             - containerPort: 3000

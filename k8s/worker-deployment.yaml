@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: worker
-          image: stephengrider/multi-worker
+          image: asia.gcr.io/k8s-gitlab-ci/worker
           env:
             - name: REDIS_HOST
               value: redis-cluster-ip-service
