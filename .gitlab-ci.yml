@@ -70,8 +70,8 @@ deploy:
     - gcloud config set compute/zone asia-south1-c
     - gcloud container clusters get-credentials complex-k8s-cluster
     - gcloud auth configure-docker -q
-    - echo $GCLOUD_SERVICE_KEY | gcloud docker login --username _json_key --password-stdin https://asia.gcr.io 
-    - export DOCKER_AUTH_CONFIG=$(cat /root/.docker/config.json)
+    # - echo $GCLOUD_SERVICE_KEY | gcloud docker login --username _json_key --password-stdin https://asia.gcr.io 
+    # - export DOCKER_AUTH_CONFIG=$(cat /root/.docker/config.json)
   script:
     - bash ./deploy.sh
   environment:
