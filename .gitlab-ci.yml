@@ -91,7 +91,7 @@ deploy:
   #   - export DOCKER_AUTH_CONFIG=$(cat /root/.docker/config.json)
 
   script:
-    - ./deploy.sh
+    - chmod +x ./deploy.sh
   environment:
     name: production
     url: http://34.93.154.22:80
