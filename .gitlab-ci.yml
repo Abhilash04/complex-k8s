@@ -80,7 +80,6 @@ deploy:
     - gcloud config set project $GCLOUD_PROJECT_ID
     - gcloud config set compute/zone asia-south1-c
     - gcloud container clusters get-credentials complex-k8s-cluster
-    - gcloud components install kubectl
   script:
     - chmod +x ./deploy.sh
     - bash ./deploy.sh
