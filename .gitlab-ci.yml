@@ -28,7 +28,7 @@ build:
     - echo $GCLOUD_SERVICE_KEY | docker login --username _json_key --password-stdin https://asia.gcr.io 
     - export DOCKER_AUTH_CONFIG=$(cat /root/.docker/config.json)
   script:
-    - docker build -t $COMMIT_IMAGE_TAG_CLIENT - t $LATEST_IMAGE_TAG_CLIENT -f ./client/Dockerfile ./client
+    - docker build -t $COMMIT_IMAGE_TAG_CLIENT -t $LATEST_IMAGE_TAG_CLIENT -f ./client/Dockerfile ./client
     - docker build -t $COMMIT_IMAGE_TAG_SERVER -t $LATEST_IMAGE_TAG_SERVER -f ./server/Dockerfile ./server
     - docker build -t $COMMIT_IMAGE_TAG_WORKER -t $LATEST_IMAGE_TAG_WORKER -f ./worker/Dockerfile ./worker
     - docker push $COMMIT_IMAGE_TAG_CLIENT
