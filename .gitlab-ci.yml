@@ -1,5 +1,5 @@
 stages:
-  # - build
+  - build
   # - test
   - deploy
 
@@ -64,6 +64,14 @@ build:
 deploy: 
   image: google/cloud-sdk:latest
   stage: deploy
+  variables:
+    DOCKER_DRIVER: overlay
+    COMMIT_IMAGE_TAG_CLIENT: $IMAGE_REGISTRY/client:$CI_COMMIT_SHA
+    LATEST_IMAGE_TAG_CLIENT: $IMAGE_REGISTRY/client:latest
+    COMMIT_IMAGE_TAG_SERVER: $IMAGE_REGISTRY/server:$CI_COMMIT_SHA
+    LATEST_IMAGE_TAG_SERVER: $IMAGE_REGISTRY/server:latest
+    COMMIT_IMAGE_TAG_WORKER: $IMAGE_REGISTRY/worker:$CI_COMMIT_SHA 
+    LATEST_IMAGE_TAG_WORKER: $IMAGE_REGISTRY/worker:latest
   before_script:
     - apk update && apk add openssh 
     - apk add bash
