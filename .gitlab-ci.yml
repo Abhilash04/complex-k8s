@@ -64,7 +64,6 @@ deploy:
     COMMIT_IMAGE_TAG_WORKER: $IMAGE_REGISTRY/worker:$CI_COMMIT_SHA 
     BRANCH_IMAGE_TAG_WORKER: $IMAGE_REGISTRY/worker:$CI_COMMIT_REF_SLUG
   before_script:
-    - gcloud components install kubectl
     - echo $GCLOUD_SERVICE_KEY > /tmp/$CI_PIPELINE_ID.json
     - gcloud auth activate-service-account --key-file /tmp/$CI_PIPELINE_ID.json
     - gcloud config set project $GCLOUD_PROJECT_ID
@@ -72,9 +71,11 @@ deploy:
     - gcloud container clusters get-credentials complex-k8s-cluster
     - echo $GCLOUD_SERVICE_KEY | docker login --username _json_key --password-stdin https://asia.gcr.io 
     - export DOCKER_AUTH_CONFIG=$(cat /root/.docker/config.json)
-    - rm /tmp/$CI_PIPELINE_ID.json
   script:
     - bash ./deploy.sh
+  environment:
+    name: prod
+    url: http://34.93.154.22:80
   only:
     refs:
       - master
